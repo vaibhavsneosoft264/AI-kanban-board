@@ -1,0 +1,1 @@
+{"message":"User registered successfully","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWVhMmE4YmIwNmFiNjVkZmFlZGRkMjUiLCJpYXQiOjE3NzY5NTM5OTUsImV4cCI6MTc3NzU1ODc5NX0.t4htiOE9a7mZgqAcmPP7LalOIVaPXi_-mCypOdKye_Q","user":{"id":"69ea2a8bb06ab65dfaeddd25","email":"test@example.com"}}
