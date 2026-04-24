@@ -3,6 +3,7 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const AssignmentHistory = require('../models/AssignmentHistory');
 const Worklog = require('../models/Worklog');
+const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
@@ -14,6 +15,19 @@ router.get('/', auth, async (req, res) => {
     res.json(tasks);
   } catch (error) {
     console.error('Error fetching tasks:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/getTaskById/:id', auth, async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    res.json(task);
+  } catch (error) {
+    console.error('Error fetching task:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -68,7 +82,7 @@ router.get('/users', auth, async (req, res) => {
 // Update task (move between columns, edit details)
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { title, description, column, assignee, dueDate, position } = req.body;
+    const { title, description, column, assignee, dueDate, position,priority } = req.body;
     
     // Get current task to check if assignee is changing
     const currentTask = await Task.findById(req.params.id);
@@ -88,6 +102,7 @@ router.put('/:id', auth, async (req, res) => {
     if (assignee !== undefined) updateData.assignee = assignee;
     if (dueDate !== undefined) updateData.dueDate = dueDate;
     if (position !== undefined) updateData.position = position;
+    if (priority !== undefined) updateData.priority = priority;
 
     const task = await Task.findByIdAndUpdate(
       req.params.id,
@@ -252,6 +267,76 @@ router.get('/time', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Error generating time report:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get user notifications
+router.get('/notifications', auth, async (req, res) => {
+  try {
+    const notifications = await Notification.find({ user: req.user._id })
+      .populate('task', 'title ticketNumber')
+      .populate('relatedUser', 'email')
+      .sort({ createdAt: -1 })
+      .limit(50);
+    
+    res.json(notifications);
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Mark notification as read
+router.put('/notifications/:id/read', auth, async (req, res) => {
+  try {
+    const notification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      { read: true },
+      { new: true }
+    );
+    
+    if (!notification) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+    
+    res.json(notification);
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Mark all notifications as read
+router.put('/notifications/read-all', auth, async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { user: req.user._id, read: false },
+      { read: true }
+    );
+    
+    res.json({ message: 'All notifications marked as read' });
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete notification
+router.delete('/notifications/:id', auth, async (req, res) => {
+  try {
+    const notification = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id
+    });
+    
+    if (!notification) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+    
+    res.json({ message: 'Notification deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting notification:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

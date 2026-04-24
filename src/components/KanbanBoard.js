@@ -8,15 +8,26 @@ import {
   IconButton,
   Chip,
   Avatar,
-  Tooltip
+  Tooltip,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  InputAdornment
 } from '@mui/material';
 import {
   DragIndicator as DragIndicatorIcon,
   Person as PersonIcon,
   CalendarToday as CalendarIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Search as SearchIcon,
+  FilterList as FilterListIcon,
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
+import TaskDetails from './TaskDetails';
 
 const columns = [
   { id: 'Backlog', title: 'Backlog', color: '#FF6B6B' },
@@ -29,17 +40,84 @@ const columns = [
   { id: 'Testing', title: 'Testing', color: '#F7DC6F' }
 ];
 
-const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTaskReorder }) => {
+const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTaskReorder, user,setTasks }) => {
   const [localTasks, setLocalTasks] = useState(tasks);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  
+  // Filter states
+  const [filters, setFilters] = useState({
+    search: '',
+    assignee: '',
+    priority: '',
+    dueDate: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
 
+  // Get unique assignees and priorities from tasks
+  const uniqueAssignees = [...new Set(tasks.map(task => task.assignee).filter(Boolean))];
+  const priorityOptions = ['High', 'Medium', 'Low'];
+
+  // Function to get filtered tasks based on current filters
+  const getFilteredTasks = () => {
+    return localTasks.filter(task => {
+      // Search filter (title and description)
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const titleMatch = task.title?.toLowerCase().includes(searchLower) || false;
+        const descMatch = task.description?.toLowerCase().includes(searchLower) || false;
+        if (!titleMatch && !descMatch) return false;
+      }
+
+      // Assignee filter
+      if (filters.assignee && task.assignee !== filters.assignee) {
+        return false;
+      }
+
+      // Priority filter
+      if (filters.priority && task.priority !== filters.priority) {
+        return false;
+      }
+
+      // Due date filter (show tasks due on or before selected date)
+      if (filters.dueDate) {
+        const filterDate = new Date(filters.dueDate);
+        const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
+        if (!taskDueDate || taskDueDate > filterDate) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
   const getTasksByColumn = (columnId) => {
-    return localTasks
+    const filteredTasks = getFilteredTasks();
+    return filteredTasks
       .filter(task => task.column === columnId)
       .sort((a, b) => a.position - b.position);
+  };
+
+  // Filter handler functions
+  const handleFilterChange = (field, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      assignee: '',
+      priority: '',
+      dueDate: ''
+    });
   };
 
   const handleDragStart = (e, taskId) => {
@@ -132,9 +210,9 @@ const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTas
   const TaskCard = ({ task }) => {
     const handleClick = (e) => {
       if (e.defaultPrevented) return;
-      if (onTaskEdit) {
-        onTaskEdit(task);
-      }
+      // Open task details modal
+      setSelectedTask(task);
+      setDetailsOpen(true);
     };
 
     const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
@@ -296,15 +374,100 @@ const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTas
             </IconButton>
           </Tooltip>
           <Chip
-            label={`${tasks.length} Total Tasks`}
+            label={`${getFilteredTasks().length} of ${tasks.length} Tasks`}
             color="primary"
             variant="outlined"
             sx={{ fontWeight: 600, marginLeft: 1, fontSize: '0.75rem' }}
           />
+          <Tooltip title={showFilters ? "Hide filters" : "Show filters"}>
+            <IconButton
+              size="small"
+              sx={{
+                ml: 1,
+                bgcolor: showFilters ? '#1a237e' : 'transparent',
+                color: showFilters ? 'white' : '#1a237e',
+                border: '1px solid #1a237e',
+                '&:hover': {
+                  bgcolor: '#1a237e',
+                  color: 'white'
+                }
+              }}
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <FilterListIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Typography>
-          
-       
         
+        {/* Filter Controls */}
+        {showFilters && (
+          <Box sx={{
+            mb: 3,
+            p: 2,
+            backgroundColor: '#f8f9fa',
+            borderRadius: 2,
+            border: '1px solid #e0e0e0',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 2,
+            alignItems: 'center'
+          }}>
+            <TextField
+              size="small"
+              placeholder="Search tasks..."
+              value={filters.search}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+              sx={{ width: 200 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                )
+              }}
+            />
+            
+            <FormControl size="small" sx={{ width: 150 }}>
+              <InputLabel>Assignee</InputLabel>
+              <Select
+                value={filters.assignee}
+                label="Assignee"
+                onChange={(e) => handleFilterChange('assignee', e.target.value)}
+              >
+                <MenuItem value="">All Assignees</MenuItem>
+                {uniqueAssignees.map(assignee => (
+                  <MenuItem key={assignee} value={assignee}>{assignee}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <FormControl size="small" sx={{ width: 150 }}>
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={filters.priority}
+                label="Priority"
+                onChange={(e) => handleFilterChange('priority', e.target.value)}
+              >
+                <MenuItem value="">All Priorities</MenuItem>
+                {priorityOptions.map(priority => (
+                  <MenuItem key={priority} value={priority}>{priority}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          
+            
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<ClearIcon />}
+              onClick={handleClearFilters}
+              sx={{ ml: 'auto' }}
+            >
+              Clear Filters
+            </Button>
+          </Box>
+        )}
+       
         <Box sx={{
           display: 'grid',
           gridTemplateColumns: {
@@ -446,6 +609,15 @@ const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTas
           </Typography>
         </Box>
       </Box>
+
+      {/* Task Details Modal */}
+      {selectedTask && <TaskDetails
+        taskId={selectedTask ? selectedTask._id : ""}
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        user={user}
+        setTasks={setTasks}
+      /> }
     </Box>
   );
 };

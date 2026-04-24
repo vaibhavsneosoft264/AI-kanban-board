@@ -21,11 +21,25 @@ export const API_URLS = {
     USERS: buildUrl('/api/tasks/users'),
     TIME_REPORT: buildUrl('/api/tasks/time'),
     REORDER: buildUrl('/api/tasks/reorder'),
+    NOTIFICATIONS: buildUrl('/api/tasks/notifications'),
+    NOTIFICATIONS_READ_ALL: buildUrl('/api/tasks/notifications/read-all'),
+  },
+  COMMENTS: {
+    BASE: buildUrl('/api/comments'),
+    TASK_COMMENTS: (taskId) => buildUrl(`/api/comments/task/${taskId}`),
+  },
+  ATTACHMENTS: {
+    BASE: buildUrl('/api/attachments'),
+    TASK_ATTACHMENTS: (taskId) => buildUrl(`/api/attachments/task/${taskId}`),
+    DOWNLOAD: (attachmentId) => buildUrl(`/api/attachments/${attachmentId}/download`),
   },
   getTask: (taskId) => buildUrl(`/api/tasks/${taskId}`),
+  getTaskById: (taskId) => buildUrl(`/api/tasks/getTaskById/${taskId}`),
   getTaskHistory: (taskId) => buildUrl(`/api/tasks/${taskId}/history`),
   getTaskWorklogs: (taskId) => buildUrl(`/api/tasks/${taskId}/worklogs`),
   addWorklog: (taskId) => buildUrl(`/api/tasks/${taskId}/worklogs`),
+  getNotificationRead: (notificationId) => buildUrl(`/api/tasks/notifications/${notificationId}/read`),
+  deleteNotification: (notificationId) => buildUrl(`/api/tasks/notifications/${notificationId}`),
 };
 
 export default API_BASE_URL;

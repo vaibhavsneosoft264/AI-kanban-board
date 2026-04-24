@@ -40,6 +40,7 @@ import { styled, useTheme } from '@mui/material/styles';
 import KanbanBoard from './KanbanBoard';
 import TaskForm from './TaskForm';
 import TimeReport from './TimeReport';
+import Notifications from './Notifications';
 
 // Styled components for premium sidebar
 const drawerWidth = 280;
@@ -256,6 +257,9 @@ const Dashboard = ({ user, onLogout }) => {
           </Box>
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {/* Notifications Component */}
+            <Notifications user={user} />
+            
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
               <Avatar sx={{ width: 36, height: 36, bgcolor: '#1a237e' }}>
                 {user?.email?.charAt(0).toUpperCase() || 'U'}
@@ -421,6 +425,8 @@ const Dashboard = ({ user, onLogout }) => {
               onTaskEdit={handleEditTask}
               onTaskUpdate={handleUpdateTask}
               onTaskReorder={handleReorderTasks}
+              user={user}
+              setTasks={setTasks}
             />
           ) : (
             <TimeReport user={user} />

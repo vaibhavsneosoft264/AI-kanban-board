@@ -35,7 +35,7 @@ const TaskForm = ({ open, onClose, onSubmit, user, task = null, mode = 'create' 
     description: '',
     assignee: '',
     dueDate: '',
-    ticketNumber: ''
+    ticketNumber: '',
   });
   const [errors, setErrors] = useState({});
   const [users, setUsers] = useState([]);

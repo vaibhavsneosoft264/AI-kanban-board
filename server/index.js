@@ -22,9 +22,16 @@ app.get('/', (req, res) => {
 
 const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
+const commentRoutes = require('./routes/comments');
+const attachmentRoutes = require('./routes/attachments');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/attachments', attachmentRoutes);
+
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

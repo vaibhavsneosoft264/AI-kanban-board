@@ -38,6 +38,11 @@ const TaskSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  priority: {
+    type: String,
+    enum: ['High', 'Medium', 'Low'],
+    default: 'Medium'
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
