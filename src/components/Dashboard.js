@@ -253,43 +253,9 @@ const Dashboard = ({ user, onLogout }) => {
             }}>
               VibeFlow Enterprise
             </Typography>
-            
-            <Box sx={{ ml: 4, display: 'flex', gap: 1 }}>
-              <Chip
-                label="PRODUCTION"
-                size="small"
-                sx={{
-                  backgroundColor: '#4caf50',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  fontSize: '0.7rem'
-                }}
-              />
-              <Chip
-                label="v2.1.0"
-                size="small"
-                variant="outlined"
-                sx={{
-                  borderColor: '#1a237e',
-                  color: '#1a237e',
-                  fontSize: '0.7rem'
-                }}
-              />
-            </Box>
           </Box>
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Tooltip title="Notifications">
-              <IconButton sx={{ color: '#1a237e' }}>
-                <NotificationsIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Settings">
-              <IconButton sx={{ color: '#1a237e' }}>
-                <SettingsIcon />
-              </IconButton>
-            </Tooltip>
-            
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
               <Avatar sx={{ width: 36, height: 36, bgcolor: '#1a237e' }}>
                 {user?.email?.charAt(0).toUpperCase() || 'U'}
