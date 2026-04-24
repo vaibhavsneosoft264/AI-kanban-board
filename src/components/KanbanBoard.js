@@ -276,7 +276,7 @@ const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTas
           alignItems: 'center',
           gap: 1
         }}>
-          Workflow Stages (2x4 Grid)
+          Workflow Stages
              <Tooltip title="Create new task">
             <IconButton
               sx={{
@@ -443,9 +443,6 @@ const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTas
         }}>
           <Typography variant="caption" color="text.secondary">
             <strong>Tip:</strong> Drag tasks between columns to update status
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Grid: 2 rows × 4 columns • Total columns: 8
           </Typography>
         </Box>
       </Box>
