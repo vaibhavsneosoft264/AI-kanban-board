@@ -68,7 +68,7 @@ function App() {
           } />
           <Route path="/dashboard" element={
             isAuthenticated ? 
-              <Dashboard onLogout={handleLogout} /> : 
+              <Dashboard user={user} onLogout={handleLogout} /> : 
               <Navigate to="/login" />
           } />
         </Routes>

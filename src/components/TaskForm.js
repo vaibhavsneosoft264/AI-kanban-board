@@ -275,7 +275,7 @@ const TaskForm = ({ open, onClose, onSubmit, user, task = null, mode = 'create' 
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          {mode === 'create' ? 'Create New Task' : `Edit Task | Ticket Number: ${formData.ticketNumber ? `#${formData.ticketNumber}` : 'N/A'}`}
+          {mode === 'create' ? 'Create New Task' : `Ticket Number: ${formData.ticketNumber ? `#${formData.ticketNumber}` : 'N/A'}`}
           <IconButton onClick={handleClose} size="small">
             <CloseIcon />
           </IconButton>
