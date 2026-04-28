@@ -40,13 +40,14 @@ const columns = [
   { id: 'Testing', title: 'Testing', color: '#F7DC6F' }
 ];
 
-const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTaskReorder, user,setTasks }) => {
+const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTaskReorder, user, setTasks, onFilterChange }) => {
   const [localTasks, setLocalTasks] = useState(tasks);
   const [selectedTask, setSelectedTask] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   
   // Filter states
   const [filters, setFilters] = useState({
+    ticketNumber: '',
     search: '',
     assignee: '',
     priority: '',
@@ -71,6 +72,11 @@ const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTas
         const titleMatch = task.title?.toLowerCase().includes(searchLower) || false;
         const descMatch = task.description?.toLowerCase().includes(searchLower) || false;
         if (!titleMatch && !descMatch) return false;
+      }
+      if (filters.ticketNumber) {
+        const searchLower = filters.ticketNumber.toLowerCase();
+        const TNMatch = task.ticketNumber?.toString().toLowerCase().includes(searchLower) || false;
+        if (!TNMatch) return false;
       }
 
       // Assignee filter
@@ -105,19 +111,32 @@ const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTas
 
   // Filter handler functions
   const handleFilterChange = (field, value) => {
-    setFilters(prev => ({
-      ...prev,
+    const newFilters = {
+      ...filters,
       [field]: value
-    }));
+    };
+    setFilters(newFilters);
+    
+    // Call parent component to refetch tasks with new filters
+    if (onFilterChange) {
+      onFilterChange(newFilters);
+    }
   };
 
   const handleClearFilters = () => {
-    setFilters({
+    const clearedFilters = {
+      ticketNumber: '',
       search: '',
       assignee: '',
       priority: '',
       dueDate: ''
-    });
+    };
+    setFilters(clearedFilters);
+    
+    // Call parent component to refetch tasks with cleared filters
+    if (onFilterChange) {
+      onFilterChange(clearedFilters);
+    }
   };
 
   const handleDragStart = (e, taskId) => {
@@ -379,28 +398,9 @@ const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTas
             variant="outlined"
             sx={{ fontWeight: 600, marginLeft: 1, fontSize: '0.75rem' }}
           />
-          <Tooltip title={showFilters ? "Hide filters" : "Show filters"}>
-            <IconButton
-              size="small"
-              sx={{
-                ml: 1,
-                bgcolor: showFilters ? '#1a237e' : 'transparent',
-                color: showFilters ? 'white' : '#1a237e',
-                border: '1px solid #1a237e',
-                '&:hover': {
-                  bgcolor: '#1a237e',
-                  color: 'white'
-                }
-              }}
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <FilterListIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
         </Typography>
         
         {/* Filter Controls */}
-        {showFilters && (
           <Box sx={{
             mb: 3,
             p: 2,
@@ -412,6 +412,20 @@ const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTas
             gap: 2,
             alignItems: 'center'
           }}>
+            <TextField
+              size="small"
+              placeholder="Search Ticket Number..."
+              value={filters.ticketNumber}
+              onChange={(e) => handleFilterChange('ticketNumber', e.target.value)}
+              sx={{ width: 200 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                )
+              }}
+            />
             <TextField
               size="small"
               placeholder="Search tasks..."
@@ -466,7 +480,6 @@ const KanbanBoard = ({ tasks = [], onTaskCreate, onTaskEdit, onTaskUpdate, onTas
               Clear Filters
             </Button>
           </Box>
-        )}
        
         <Box sx={{
           display: 'grid',

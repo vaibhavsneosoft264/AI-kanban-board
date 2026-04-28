@@ -24,11 +24,13 @@ const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
 const commentRoutes = require('./routes/comments');
 const attachmentRoutes = require('./routes/attachments');
+const { router: activityRoutes } = require('./routes/activities');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/attachments', attachmentRoutes);
+app.use('/api/activities', activityRoutes);
 
 // Serve uploaded files statically
 app.use('/uploads', express.static('uploads'));

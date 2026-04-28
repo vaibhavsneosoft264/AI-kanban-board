@@ -36,6 +36,7 @@ const TaskForm = ({ open, onClose, onSubmit, user, task = null, mode = 'create' 
     assignee: '',
     dueDate: '',
     ticketNumber: '',
+    priority: ''
   });
   const [errors, setErrors] = useState({});
   const [users, setUsers] = useState([]);
@@ -118,7 +119,8 @@ const TaskForm = ({ open, onClose, onSubmit, user, task = null, mode = 'create' 
         description: task.description || '',
         assignee: task.assignee || '',
         dueDate: task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : '',
-        ticketNumber: task.ticketNumber || ''
+        ticketNumber: task.ticketNumber || '',
+        priority: task.priority || ''
       });
     } else {
       setFormData({
@@ -126,7 +128,8 @@ const TaskForm = ({ open, onClose, onSubmit, user, task = null, mode = 'create' 
         description: '',
         assignee: '',
         dueDate: '',
-        ticketNumber: ''
+        ticketNumber: '',
+        priority: ''
       });
     }
     setErrors({});
@@ -152,14 +155,39 @@ const TaskForm = ({ open, onClose, onSubmit, user, task = null, mode = 'create' 
   const validate = () => {
     const newErrors = {};
     
-    if (!formData.title.trim()) {
+    // Validate title
+    if (!formData.title?.trim()) {
       newErrors.title = 'Title is required';
-    } else if (formData.title.length > 255) {
+    } else if (formData.title?.length > 255) {
       newErrors.title = 'Title cannot exceed 255 characters';
     }
     
-    if (formData.description.length > 1000) {
+    // Validate description
+    if (formData.description?.length > 1000) {
       newErrors.description = 'Description cannot exceed 1000 characters';
+    }
+    
+    // Validate assignee (optional but warn if empty)
+    if (!formData.assignee?.trim()) {
+      newErrors.assignee = 'Please assign this task to someone';
+    }
+    
+    // Validate priority
+    if (!formData.priority?.trim()) {
+      newErrors.priority = 'Priority is required';
+    }
+    
+    // Validate due date
+    if (formData.dueDate) {
+      const dueDate = new Date(formData.dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (dueDate < today) {
+        newErrors.dueDate = 'Due date cannot be in the past';
+      }
+    } else {
+      newErrors.dueDate = 'Due date is required';
     }
     
     return newErrors;
@@ -310,15 +338,17 @@ const TaskForm = ({ open, onClose, onSubmit, user, task = null, mode = 'create' 
               rows={3}
               placeholder="Enter task description"
               inputProps={{ maxLength: 1000 }}
+              sx={{mt : 2}}
             />
             
-            <FormControl fullWidth>
+            <FormControl sx={{mt : 2}} fullWidth error={!!errors.assignee}>
               <InputLabel>Assignee</InputLabel>
               <Select
                 name="assignee"
                 value={formData.assignee}
                 onChange={handleChange}
                 label="Assignee"
+                error={!!errors.assignee}
               >
                 <MenuItem value="">
                   <em>Unassigned</em>
@@ -330,22 +360,50 @@ const TaskForm = ({ open, onClose, onSubmit, user, task = null, mode = 'create' 
                 ))}
               </Select>
               <FormHelperText>
-                Select a team member to assign this task to
+                {errors.assignee || 'Select a team member to assign this task to'}
               </FormHelperText>
             </FormControl>
+            <FormControl sx={{mt : 2}} fullWidth error={!!errors.priority}>
+              <InputLabel>Priority</InputLabel>
+              <Select
+                name="priority"
+                value={formData.priority}
+                onChange={handleChange}
+                label="Priority"
+                error={!!errors.priority}
+              >
+                <MenuItem value="">
+                  <em>Unassigned</em>
+                </MenuItem>
+               {['High', 'Medium', 'Low'].map((item,ind) => (
+                                     <MenuItem key={ind} value={item}>
+                                       {item}
+                                     </MenuItem>
+                                   ))}
+              </Select>
+              <FormHelperText>
+                {errors.priority || 'Select a priority level for this task'}
+              </FormHelperText>
+            </FormControl>
+
+            <Typography sx={{mt : 2}} variant="caption" color="text.secondary">
+                Due Date
+              </Typography>
             
             <TextField
-              label="Due Date"
               name="dueDate"
               type="date"
               value={formData.dueDate}
               onChange={handleChange}
+              error={!!errors.dueDate}
+              helperText={errors.dueDate}
               fullWidth
               InputLabelProps={{ shrink: true }}
+              
             />
             
             {mode === 'create' && (
-              <FormControl fullWidth>
+              <FormControl sx={{mt : 2}} fullWidth>
                 <InputLabel>Status</InputLabel>
                 <Select
                   name="column"

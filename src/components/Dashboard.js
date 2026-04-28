@@ -84,16 +84,36 @@ const Dashboard = ({ user, onLogout }) => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [activeView, setActiveView] = useState('board');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    ticketNumber: '',
+    search: '',
+    assignee: '',
+    priority: '',
+    dueDate: ''
+  });
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    fetchTasks(filters);
+  }, [filters]);
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (filterParams = {}) => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get(API_URLS.TASKS.BASE, {
+      
+      // Build query string from filter parameters
+      const queryParams = new URLSearchParams();
+      Object.entries(filterParams).forEach(([key, value]) => {
+        if (value && value.trim() !== '') {
+          queryParams.append(key, value.trim());
+        }
+      });
+      
+      const url = queryParams.toString()
+        ? `${API_URLS.TASKS.BASE}?${queryParams.toString()}`
+        : API_URLS.TASKS.BASE;
+      
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTasks(response.data);
@@ -200,6 +220,11 @@ const Dashboard = ({ user, onLogout }) => {
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    // Tasks will be refetched automatically via useEffect dependency on filters
   };
 
   if (loading) {
@@ -427,6 +452,7 @@ const Dashboard = ({ user, onLogout }) => {
               onTaskReorder={handleReorderTasks}
               user={user}
               setTasks={setTasks}
+              onFilterChange={handleFilterChange}
             />
           ) : (
             <TimeReport user={user} />

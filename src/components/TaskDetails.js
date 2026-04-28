@@ -82,6 +82,10 @@ const TaskDetails = ({ taskId, open, onClose, user, setTasks }) => {
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
+  // Activities for task changes
+  const [activities, setActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(false);
+
   // Column options for status dropdown
   const columnOptions = [
     'Backlog',
@@ -99,6 +103,7 @@ const TaskDetails = ({ taskId, open, onClose, user, setTasks }) => {
       fetchComments();
       fetchAttachments();
       fetchUsers();
+      fetchActivities();
       setEditedTask({ ...task });
     }
     fetchWorklogs();
@@ -111,7 +116,7 @@ const TaskDetails = ({ taskId, open, onClose, user, setTasks }) => {
 
   useEffect(() => {
     fetchTaskDetails()
-  }, [taskId]);
+  }, [taskId,open]);
 
       const fetchWorklogs = async () => {
         if (taskId) {
@@ -188,6 +193,22 @@ const TaskDetails = ({ taskId, open, onClose, user, setTasks }) => {
       console.error('Error fetching users:', err);
     } finally {
       setLoadingUsers(false);
+    }
+  };
+
+  const fetchActivities = async () => {
+    if (!taskId) return;
+    setLoadingActivities(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(API_URLS.ACTIVITIES.TASK_ACTIVITIES(taskId), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setActivities(response.data.activities || []);
+    } catch (err) {
+      console.error('Error fetching activities:', err);
+    } finally {
+      setLoadingActivities(false);
     }
   };
 
@@ -388,6 +409,34 @@ const TaskDetails = ({ taskId, open, onClose, user, setTasks }) => {
     };
     return statusColors[column] || '#b3bac5';
   };
+
+  const getActivityColor = (field) => {
+    switch(field) {
+      case 'assignee': return '#0055cc';
+      case 'status': return '#4bcdfe';
+      case 'dueDate': return '#61bd4f';
+      case 'priority': return '#f97462';
+      case 'title': return '#c377e0';
+      case 'description': return '#fd7792';
+      default: return '#626f86';
+    }
+  };
+
+  const getActivityIcon = (iconOrField) => {
+    // Handle both icon names from backend and field names
+    const icon = iconOrField?.toLowerCase();
+    
+    if (icon === 'person' || icon === 'assignee') return '👤';
+    if (icon === 'swap_horiz' || icon === 'status') return '↔️';
+    if (icon === 'calendar_today' || icon === 'duedate') return '📅';
+    if (icon === 'flag' || icon === 'priority') return '🚩';
+    if (icon === 'title') return '📝';
+    if (icon === 'description') return '📄';
+    if (icon === 'edit') return '✏️';
+    
+    return '📌';
+  };
+
     const formatWorklogDate = (dateString) => {
       try {
         return format(new Date(dateString), 'MMM dd, yyyy HH:mm');
@@ -471,7 +520,7 @@ const TaskDetails = ({ taskId, open, onClose, user, setTasks }) => {
                 }}
                 onClick={() => setIsEditingTitle(true)}
               >
-                 { task.ticketNumber &&   <Chip
+              {task.ticketNumber && <Chip
               label={`#${task.ticketNumber}`}
               size="small"
               sx={{
@@ -701,10 +750,58 @@ const TaskDetails = ({ taskId, open, onClose, user, setTasks }) => {
 
               <Divider sx={{ my: 3, borderColor: '#dfe1e6' }} />
 
+              {/* Activity Log Section */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#161b22', mb: 2 }}>
+                  Activity Log
+                </Typography>
+
+                {loadingActivities ? (
+                  <Box display="flex" justifyContent="center" py={2}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : activities.length > 0 ? (
+                  <Box>
+                    {activities.map((activity) => (
+                      <Box key={activity._id} sx={{ mb: 2, display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                        <Avatar sx={{
+                          bgcolor: getActivityColor(activity.field),
+                          width: 32,
+                          height: 32,
+                          fontSize: '0.8rem',
+                          mt: 0.5
+                        }}>
+                          {getActivityIcon(activity.icon || activity.field)}
+                        </Avatar>
+                        <Box sx={{ flex: 1 }}>
+                          <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+                            <Typography variant="subtitle2" fontWeight="600" sx={{ color: '#161b22' }}>
+                              {activity.changedBy?.name || activity.changedByEmail?.split('@')[0] || 'User'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {activity.formattedDate || format(new Date(activity.changedAt), 'MMM dd, yyyy HH:mm')}
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2" sx={{ color: '#626f86', mt: 0.5 }}>
+                            {activity.message}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography variant="caption" color="text.secondary">
+                    No activity yet
+                  </Typography>
+                )}
+              </Box>
+
+              <Divider sx={{ my: 3, borderColor: '#dfe1e6' }} />
+
               {/* Comments Section */}
               <Box sx={{ mb: 4 }}>
                 <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#161b22', mb: 2 }}>
-                  Activity
+                  Comments
                 </Typography>
 
                 {/* Add Comment */}

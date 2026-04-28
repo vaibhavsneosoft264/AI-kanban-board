@@ -40,6 +40,9 @@ export const API_URLS = {
   addWorklog: (taskId) => buildUrl(`/api/tasks/${taskId}/worklogs`),
   getNotificationRead: (notificationId) => buildUrl(`/api/tasks/notifications/${notificationId}/read`),
   deleteNotification: (notificationId) => buildUrl(`/api/tasks/notifications/${notificationId}`),
+  ACTIVITIES: {
+    TASK_ACTIVITIES: (taskId) => buildUrl(`/api/activities/task/${taskId}`),
+  },
 };
 
 export default API_BASE_URL;
